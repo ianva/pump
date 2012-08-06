@@ -1,7 +1,7 @@
 /**
  * Utilities for fetching js and css files.
  */
-;(function() {
+;(function(win) {
   var doc = document
   var head = doc.head ||
       doc.getElementsByTagName('head')[0] ||
@@ -14,6 +14,7 @@
   var READY_STATE_RE = /loaded|complete|undefined/
 
   var currentlyAddingScript
+  var interactiveScript
 
   var AP = Array.prototype;
   var toString = Object.prototype.toString;
@@ -25,24 +26,6 @@
   }
   var isArray = function(val) {
     return toString.call(val) === '[object Array]'
-  }
-  /**
-   * The safe wrapper of console.log/error/...
-   */
-  var log = function() {
-    if (typeof console !== 'undefined') {
-      var args = AP.slice.call(arguments)
-
-      var type = 'log'
-      var last = args[args.length - 1]
-      console[last] && (type = args.pop())
-
-      // Only show log info in debug mode
-      if (type === 'log' && !config.debug) return
-
-      var out = type === 'dir' ? args[0] : AP.join.call(args, ' ')
-      console[type](out)
-    }
   }
 
   var fetch = function(url, callback, charset) {
@@ -109,11 +92,8 @@
   }
 
   function styleOnload(node, callback) {
-
     // for Old WebKit and Old Firefox
     if (isOldWebKit || isOldFirefox) {
-      log('Start poll to fetch css')
-
       setTimeout(function() {
         poll(node, callback)
       }, 1) // Begin after node insertion
@@ -164,8 +144,67 @@
     }, 1)
   }
 
-  function noop() { }
+    function noop() { }
 
+    function getCurrentScript() {
+        //firefox4 and opera
+        if (document.currentScript) {
+            return document.currentScript;
+        } else if (document.attachEvent) {
+            if (currentlyAddingScript) {
+              return currentlyAddingScript
+            }
+            // For IE6-9 browsers, the script onload event may not fire right
+            // after the the script is evaluated. Kris Zyp found that it
+            // could query the script nodes and the one that is in "interactive"
+            // mode indicates the current script.
+            // Ref: http://goo.gl/JHfFW
+            if (interactiveScript &&
+                interactiveScript.readyState === 'interactive') {
+              return interactiveScript
+            }
+            var scripts = head.getElementsByTagName('script')
+            for (var i = 0; i < scripts.length; i++) {
+              var script = scripts[i]
+              if (script.readyState === 'interactive') {
+                interactiveScript = script
+                return script
+              }
+            }
+        } else {
+            // 参考 https://github.com/samyk/jiagra/blob/master/jiagra.js
+            // chrome and firefox4以前的版本
+            var stack;
+            try {
+                makeReferenceError
+            } catch (e) {
+                stack = e.stack;
+            }
+            if (!stack)
+                return undefined;
+            // chrome uses at, ff uses @
+            var e = stack.indexOf(' at ') !== -1 ? ' at ' : '@';
+            while (stack.indexOf(e) !== -1) {
+                stack = stack.substring(stack.indexOf(e) + e.length);
+            }
+            stack = stack.replace(/:\d+:\d+$/ig, "");
+
+            var scripts = document.getElementsByTagName('script');
+            for (var i = scripts.length - 1; i > -1; i--) {
+                if (scripts[i].src === stack) {
+                    return scripts[i];
+                }
+            }
+        }
+    }
+  function isOutScript(){
+    var node = getCurrentScript();
+    if(!node) return false
+    return !!(node.hasAttribute ? // non-IE6/7
+            node.src :
+            // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
+            node.getAttribute('src', 4))
+  }
   var UA = navigator.userAgent
 
   // `onload` event is supported in WebKit since 535.23
@@ -180,6 +219,63 @@
   var isOldFirefox = UA.indexOf('Firefox') > 0 &&
       !('onload' in document.createElement('link'))
 
+  /*
+   * contentloaded.js
+   *
+   * Author: Diego Perini (diego.perini at gmail.com)
+   * Summary: cross-browser wrapper for DOMContentLoaded
+   * Updated: 20101020
+   * License: MIT
+   * Version: 1.2
+   *
+   * URL:
+   * http://javascript.nwbox.com/ContentLoaded/
+   * http://javascript.nwbox.com/ContentLoaded/MIT-LICENSE
+   *
+   */
+
+  // @win window reference
+  // @fn function reference
+  function contentLoaded (fn) {
+    var done = false, top = true, 
+    doc = win.document, 
+    root = doc.documentElement,
+    add = doc.addEventListener ? 'addEventListener' : 'attachEvent',
+    rem = doc.addEventListener ? 'removeEventListener' : 'detachEvent',
+    pre = doc.addEventListener ? '' : 'on',
+
+    init = function(e) {
+      if (e.type == 'readystatechange' && doc.readyState != 'complete') return;
+      (e.type == 'load' ? win : doc)[rem](pre + e.type, init, false);
+      if (!done && (done = true)) fn.call(win, e.type || e);
+    },
+
+    poll = function() {
+      try { root.doScroll('left'); } catch(e) { setTimeout(poll, 50); return; }
+      init('poll');
+    };
+
+    if (doc.readyState == 'complete') fn.call(win, 'lazy');
+    else {
+      if (doc.createEventObject && root.doScroll) {
+        try { top = !win.frameElement; } catch(e) { }
+        if (top) {
+          poll();
+        }
+      }
+      doc[add](pre + 'DOMContentLoaded', init, false);
+      doc[add](pre + 'readystatechange', init, false);
+      win[add](pre + 'load', init, false);
+    }
+  }
+  function fireReadyList() {
+    var i = 0, list;
+    if (domreadyList.length) {
+      for(; list = domreadyList[i++]; ) {
+         list();
+      }
+    }
+  }
 //--------------------
 
 /* pump version 1.0
@@ -187,9 +283,10 @@
  * update : 2012.7.31
  */
 
-// {url:'', callChain:[], loaded: true, asyn: false}
+// {url:'', callChain:[], loaded: true, async: false}
 var loadList = []
 ,   domreadyList = []
+,   modules = {}
 ,   config = {
         charset : 'gbk'
     }
@@ -200,56 +297,60 @@ var pump = function(name, callback, status){
     ,   index = length -1
     ,   last = loadList[ index ]
     ,   charset = config.charset
+    ,   currentScript = getCurrentScript()
+    ,   init
     ;
-    /*var push2Chain = function(){
-        if(!last) return 
-        // asyn 不挂载任何 callback
-        // 存在 asyn 属性时找上一个src
-        if( last.asyn ){
-            if (index = 0){
-                callback();
-            }else{
-                last = loadList[ index-- ];
-                arguments.callee()
-            }
-        }else{
-            last.callChain.push( callback )
-        }
-    }*/
     var srcCallback = function(){
-        var current = last 
+        var current = loadList[ loadList.length - 1 ]
         ,   calls = current.callChain
         ,   le = calls.length
         ;
-
         for(var i = 0; i<le ; i++){
             calls[i]()
         }
         current.loaded = true
     }
+    var moduleInit = function(fn,status){
+        // domready则在init时放在domready执行队列中
+        var cb;
+        if( status == 'domready' ){
+            cb = fn;
+            fn = function(){
+                console.log('domreadyList')
+                domreadyList.push(cb) 
+            }
+        }
+        if(length == 0){
+            fn();
+            return 
+        }
+        // 在外联scirpt中的模块直接执行
+        if( isOutScript() ){
+            fn();
+            return
+        }
+        // 内联script中的模块放在前一个外联script的执行队列中
+        if(last){ 
+            last.loaded? fn() : last.callChain.push( fn )
+            return
+        }
+        fn();
+    };
 
-    callback || callback = noop; 
+    if( !isFunction(name) && !isString(name)) return
+
     
     // 第一个参数为function 
     if(isFunction(name)){
-
-        callback = name;
         status = callback;
-
-        if(length == 0){
-            callback();
-            return 
-        }
-        if( status == 'domready' ){
-            domreadyList.push(callback) 
-            return
-        }
-        last && last.callChain.push( callback )
+        callback = name;
+        moduleInit(callback,status)
         return
     }
+    callback || (callback = noop); 
     // 第一个参数为js,css
     if( IS_SRC_RE.test(name) ){
-        if( status == 'asyn' ){
+        if( status == 'async' ){
             fetch( name, callback, charset);
             return
         }
@@ -257,17 +358,37 @@ var pump = function(name, callback, status){
             url : name,
             callChain:[callback], 
             loaded: false, 
-            asyn: false
+            async: false
         });
         fetch( name, srcCallback, charset );
+        return
     }
-    
-    
-}   
+    //只有一个参数为模块名
+    if( args.length === 1 ){
+       return modules[ name ] && modules[ name ].exports
+    }
+    //存在多个参数,第一个参数为模块名
+    modules[ name ] = {
+        init :function(){
+            var exports = modules[name].exports;
+            callback( exports );
+            return exports;
+        },
+        exports : {}
+    }
+    init = modules[name].init
+    moduleInit(init)
+}
+// domready 
+contentLoaded(function(){
+    console.log('domready!')
+    fireReadyList();
+});
+pump.loadList = loadList;
+pump.modules = modules;
+win.pump = pump;
 
-
-
-})()
+})(window)
 
 
 
