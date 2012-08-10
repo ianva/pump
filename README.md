@@ -39,35 +39,36 @@ Example:
 	//串行加载
 	pump.load('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js','serial')
 
-###模块系统
+####模块系统
 `pump(name, fn)`: 定义模块  
 `pump(fn)`: 定义匿名模块  
 `pump(name)`:获取模块
 
-模块的定义  
+#####模块的定义  
 允许通过 `exports` 输出api
 
 Example:
 
-		//定义一个模块 module-1
-		pump('module-1',function(exports){
-        	var a = 100
-            exports.a = a
-        });
-        //定义匿名模块
-        pump(function(){
-        	console.log('hello world')
-        })
-        // 在m2中通过pump(name)的方式获取到模块
-        pump('m2',function(){
-        	console.log(pump('module-1').a)
-        });
+	//定义一个模块 module-1
+	pump('module-1',function(exports){
+        var a = 100
+        exports.a = a
+    });
+    //定义匿名模块
+    pump(function(){
+    	console.log('hello world')
+    })
+    // 在m2中通过pump(name)的方式获取到模块
+    pump('m2',function(){
+    	console.log(pump('module-1').a)
+    });
 
 注：如果pump声明在两个pump.load中间，仍然会按照html或script中位置的顺序执行，async除外。
 
-###Domready后执行
+####Domready后执行
 
 `pump.ready(name, fn)`  
+
 name[可选]: 模块名
 fn: 回调，无name则为匿名模块
 
@@ -82,11 +83,11 @@ Example:
 	
 注：如果所有的脚本在domready后执行完，ready中的模块则会在所有脚本执行完之后执行，否则在domready后执行(ready同样遵循按照html或script的位置顺序执行的原则，domready即文档的最后，所以会在所有load的文件执行完后执行)；
 
-###配置
+####配置
 
 `pump.config`
 
-`charset` : 文件编码
+`charset` : 文件编码  
 `type`: load的默认类型 async，serial，parallel
 
 
