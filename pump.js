@@ -10,7 +10,6 @@
   var baseElement = head.getElementsByTagName('base')[0]
 
   var IS_CSS_RE = /\.css(?:\?|$)/i
-  var IS_SRC_RE=/\.(?:css|js)(?:\?|$)/i 
   var READY_STATE_RE = /loaded|complete|undefined/
 
   var currentlyAddingScript
@@ -197,10 +196,10 @@
             }
         }
     }
-  function isOutScript(){
+  function currentScriptSrc(){
     var node = getCurrentScript();
-    if(!node) return false
-    return !!(node.hasAttribute ? // non-IE6/7
+    if(!node) return ''
+    return (node.hasAttribute ? // non-IE6/7
             node.src :
             // see http://msdn.microsoft.com/en-us/library/ms536429(VS.85).aspx
             node.getAttribute('src', 4))
@@ -270,8 +269,8 @@
   }
   function fireReadyList() {
     var i = 0, list;
-    if (domreadyList.length) {
-      for(; list = domreadyList[i++]; ) {
+    if (readyList.length) {
+      for(; list = readyList[i++]; ) {
          list();
       }
     }
@@ -280,18 +279,19 @@
 
 /* pump version 1.0
  * creator : ianva
- * update : 2012.7.31
+ * update : 2012.8.9
  */
 
-// {url:'', callChain:[], loaded: true, async: false}
+// {url:'', callChain:[], loaded: true, called : false, type: 'serial'}
 var loadList = []
-,   domreadyList = []
+,   readyList = []
 ,   modules = {}
 ,   config = {
-        charset : 'gbk'
+        charset : 'gbk',
+        type : 'serial'
     }
 ;
-var pump = function(name, callback, status){
+var pump = function(name, callback){
     var args = arguments
     ,   length = loadList.length
     ,   index = length -1
@@ -300,32 +300,13 @@ var pump = function(name, callback, status){
     ,   currentScript = getCurrentScript()
     ,   init
     ;
-    var srcCallback = function(){
-        var current = loadList[ loadList.length - 1 ]
-        ,   calls = current.callChain
-        ,   le = calls.length
-        ;
-        for(var i = 0; i<le ; i++){
-            calls[i]()
-        }
-        current.loaded = true
-    }
-    var moduleInit = function(fn,status){
-        // domready则在init时放在domready执行队列中
-        var cb;
-        if( status == 'domready' ){
-            cb = fn;
-            fn = function(){
-                console.log('domreadyList')
-                domreadyList.push(cb) 
-            }
-        }
+    var moduleInit = function(fn){
         if(length == 0){
             fn();
             return 
         }
         // 在外联scirpt中的模块直接执行
-        if( isOutScript() ){
+        if( currentScriptSrc() ){
             fn();
             return
         }
@@ -339,35 +320,19 @@ var pump = function(name, callback, status){
 
     if( !isFunction(name) && !isString(name)) return
 
-    
     // 第一个参数为function 
     if(isFunction(name)){
-        status = callback;
         callback = name;
-        moduleInit(callback,status)
+        moduleInit(callback)
         return
     }
     callback || (callback = noop); 
-    // 第一个参数为js,css
-    if( IS_SRC_RE.test(name) ){
-        if( status == 'async' ){
-            fetch( name, callback, charset);
-            return
-        }
-        loadList.push({
-            url : name,
-            callChain:[callback], 
-            loaded: false, 
-            async: false
-        });
-        fetch( name, srcCallback, charset );
-        return
-    }
+    
     //只有一个参数为模块名
     if( args.length === 1 ){
        return modules[ name ] && modules[ name ].exports
     }
-    //存在多个参数,第一个参数为模块名
+    //存在两个参数,第一个参数为模块名
     modules[ name ] = {
         init :function(){
             var exports = modules[name].exports;
@@ -379,16 +344,113 @@ var pump = function(name, callback, status){
     init = modules[name].init
     moduleInit(init)
 }
+
+var callChain = function(item){
+    var  calls = item.callChain
+    ,   le = calls.length
+    ;
+    for(var i = 0; i<le ; i++){
+        calls[i].call(win);
+    }
+    item.called = true;
+}
+
+pump.serialLoad = function(src, callback){
+    var index 
+    ,   prev 
+    ,   charset = config.charset
+    ;    
+    var srcCallback = function(){
+        var current = loadList[ index ]
+        ,   length = loadList.length
+        ;
+        current.loade = true;
+        callChain( current );
+        if( current = loadList[ index + 1 ] ){
+            index++
+            fetch(current.url, arguments.callee, charset );
+        }
+    }
+    loadList.push({
+        url : src,
+        callChain : [callback],
+        loaded : false,
+        called : false,
+        type: 'serial'
+    });        
+    index = loadList.length - 1;
+    prev = loadList[ index - 1 ];
+    if(index == 0 || prev && prev.called){
+        fetch( src, srcCallback, charset ); 
+    }
+}
+pump.parallelLoad = function(src, callback){
+    var index 
+    ,   charset = config.charset
+    ;
+    var srcCallback = function (){
+        var current = loadList[ index ]
+        ,   length = loadList.length
+        ,   prev = loadList[ index -1 ]
+        ;
+        current.loaded = true;
+        if( index == 0 || (prev && prev.called) ){
+            // 执行当前调用队列
+            callChain( current );
+            //执行之后已loaded的脚本的调用队列
+            for(var i = index;loadList[i++];){
+                if(loadList[i] && loadList[i].loaded){
+                    callChain( loadList[i] )
+                }else{
+                    break;
+                }
+            }    
+        }
+    }
+    loadList.push({
+        url : src,
+        callChain:[callback], 
+        loaded: false, 
+        called: false,
+        type: 'parallel'
+    });
+    index = loadList.length - 1; 
+    fetch( src, srcCallback, charset );
+}
+pump.asyncLoad = function(src, callback, charset){
+    fetch( src, callback, config.charset);
+}
+pump.load = function( src, callback, type ){
+    if(isString(callback)){
+        type = callback;
+        callback = noop;
+    }
+    if(arguments.length == 1){
+        callback = noop;
+    }
+    type = type || config.type;
+    return pump[type + 'Load'].call( win, src, callback, config.charset );
+}
+pump.ready = function( name, callback ){
+    if(isFunction(name) && arguments.length == 1) callback = name;
+    readyList.push(function(){
+        pump(name,callback);
+    });
+}
+pump.clean = function(){
+    loadList = [];
+    modules = [];
+    readyList = [];
+}
+
 // domready 
 contentLoaded(function(){
-    console.log('domready!')
     fireReadyList();
 });
-pump.loadList = loadList;
+
 pump.modules = modules;
+pump.config = config;
+
 win.pump = pump;
 
 })(window)
-
-
-

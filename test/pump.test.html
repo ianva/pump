@@ -6,29 +6,43 @@
     <link rel="stylesheet" href="mocha/mocha.css" />
     <script src="mocha/mocha.js"></script>
     <script src="chai/chai.js"></script>
-    <script type="text/javascript" src="../pump.js"></script>
     <script>
     window.assert = chai.assert; //替换掉assert对象，方便在node.js文件里使用
     mocha.setup('tdd');
     </script>
+    <script type="text/javascript" src="../pump.js"></script>
     <script src="pump.test.js" type="text/javascript"></script>
     <script>
-        pump(function(){
-            console.log('readyCall')
-        });
-        pump('http://localhost:3000/js/pumpt1.js',function(){
-            console.log('loadscript!')
-        },'domready');
-        pump(function(){
-            console.log('readyCall - 2')
-        });
     </script>
-  </head>
+      </head>
   <body>
     <div id="mocha"></div>
+
+    <!--<script type="text/javascript">
+        pump.config.type = 'parallel';
+        pump.load('http://localhost:3000/js/pumpt1.js',function(){
+          console.log('1-!!!')     
+        });
+        pump.load('http://static.c.aliimg.com/js/app/operation/homepage/page/home20120606/top-merge.js?t=0726',function(){
+           console.log('2-!!!')     
+        });
+        pump('m2',function(){
+            console.log('m2',this)
+        });
+        pump.ready('m3',function(){
+           console.log('domready m3')
+        })
+        pump.load('https://ssl.google-analytics.com/ga.js',function(){
+            console.log('async')
+        },'async')
+        pump.load('http://img3.douban.com/js/packed_jquery.min4.js',function(){
+           console.log('3-!!!!')     
+           console.log(pump('pump-t1'))
+        });
+    </script>
+-->
     <script>
-    mocha.run().globals( 'getInterface, console, $, jQuery, _tb_tracer, html5, Modernizr, aliclick, etcclick, eeclick, aliclickType, baseClick, FE'.split(', ') )
-    console.log('test run')
+    mocha.run().globals( 'kkeys, konami, getInterface, console, $, jQuery, _tb_tracer, html5, Modernizr, aliclick, etcclick, eeclick, aliclickType, baseClick, FE'.split(', ') )
     </script>
   </body>
 </html>
