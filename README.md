@@ -10,7 +10,7 @@ pump 的特点是可以让所有的脚本异步并行或串行加载，会按照
 
 在head中引入`pump-min.js` ，`<script src="pump-min.js"></script>`
 
-或者直接降 `pump-min.js` 的代码拷贝在head中，所有外联样式(link中的css)之上，可避免阻塞外联css的加载。
+或者直接将 `pump-min.js` 的代码拷贝在head中，所有外联样式(link中的css)之上，可避免阻塞外联css的加载。
 
 ###使用
 
