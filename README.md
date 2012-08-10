@@ -2,7 +2,7 @@
 
 pump是一个轻量的异步加载脚本与模块的库
 
-pump 的特点是可以让所有的脚本异步并行或串行加载，会按照页面或脚本中位置的先后顺序执行，不需要依靠文件依赖来维护执行顺序，行为类似于script标签在页面中的表现，并支持异步和domready后执行。
+pump 的特点是会让异步的脚本按照页面或脚本中位置的先后顺序执行，不需要依靠文件依赖来维护执行顺序，行为类似于script标签在页面中的表现
 
 ##如何使用?
 
@@ -12,14 +12,16 @@ pump 的特点是可以让所有的脚本异步并行或串行加载，会按照
 
 或者直接将 `pump-min.js` 的代码拷贝在head中，所有外联样式(link中的css)之上，可避免阻塞外联css的加载。
 
-###使用
+###使用方法
 
 ####加载脚本
 
-`pump.load(src, callback, type)`
+`pump.load(src[, callback[, type]])`
 
 src : 需要加载的js，css  
+
 callback[可选]: 回调  
+
 type[可选]: 加载类型，默认为pump.config.type 中定义的类型。  
 1. `async` : 完全异步，不依赖于任何脚本的执行，声明即加载，加载后立刻执行。  
 2. `serial` : 串行加载，按照html或script中出现的顺序加载，加载并执行完一个后才去加载下一个。  
@@ -67,14 +69,14 @@ Example:
 
 ####Domready后执行
 
-`pump.ready(name, fn)`  
+`pump.ready([name,] fn)`  
 
 name[可选]: 模块名
 fn: 回调，无name则为匿名模块
 
 Example:
 
-	pump.ready(name,function(){
+	pump.ready('mymodule',function(){
 		console.log('ready')
 	});
 	pump.ready(function(){
