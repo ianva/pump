@@ -68,23 +68,14 @@
       styleOnload(node, callback)
     }
   }
-  function removeNode(n){
+  function removeScript(script){
       if(isIE){
-        (function(){
-            var d;
-            return function(n){
-                if(n && n.tagName != 'BODY'){
-                    d = d || document.createElement('div');
-                    d.appendChild(n);
-                    d.innerHTML = '';
-                }
-            }
-        })() 
+          script.removeNode();
       }else{
-        if(n && n.parentNode && n.tagName != 'BODY'){
-            n.parentNode.removeChild(n);
+        if(script && script.parentNode){
+            head.removeChild(script);
         }
-    } 
+      } 
   }
   function scriptOnload(node, callback) {
     node.onload = node.onerror = node.onreadystatechange = function() {
@@ -94,7 +85,7 @@
         node.onload = node.onerror = node.onreadystatechange = null
 
         // Remove the script to reduce memory leak
-        removeNode(node);
+        removeScript(node);
 
         // Dereference the node
         node = undefined
