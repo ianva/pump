@@ -7,6 +7,7 @@
       doc.getElementsByTagName('head')[0] ||
       doc.documentElement
 
+  var isIE = !+'\v1';
   var baseElement = head.getElementsByTagName('base')[0]
 
   var IS_CSS_RE = /\.css(?:\?|$)/i
@@ -67,9 +68,25 @@
       styleOnload(node, callback)
     }
   }
-
+  function removeNode(n){
+      if(isIE){
+        (function(){
+            var d;
+            return function(n){
+                if(n && n.tagName != 'BODY'){
+                    d = d || document.createElement('div');
+                    d.appendChild(n);
+                    d.innerHTML = '';
+                }
+            }
+        })() 
+      }else{
+        if(n && n.parentNode && n.tagName != 'BODY'){
+            n.parentNode.removeChild(n);
+        }
+    } 
+  }
   function scriptOnload(node, callback) {
-
     node.onload = node.onerror = node.onreadystatechange = function() {
       if (READY_STATE_RE.test(node.readyState)) {
 
@@ -77,9 +94,7 @@
         node.onload = node.onerror = node.onreadystatechange = null
 
         // Remove the script to reduce memory leak
-        if (node.parentNode) {
-          head.removeChild(node)
-        }
+        removeNode(node);
 
         // Dereference the node
         node = undefined
