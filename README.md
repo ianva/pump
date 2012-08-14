@@ -86,7 +86,7 @@ Example:
 	
 注：如果所有的脚本在domready后执行完，ready中的模块则会在所有脚本执行完之后执行，否则在domready后执行(ready同样遵循按照html或script的位置顺序执行的原则，domready即文档的最后，所以会在所有load的文件执行完后执行)；
 
-####清除加载队列
+####清除
 `pump.clean()`
 清除之前的加载，执行队列以及所有模块
 
