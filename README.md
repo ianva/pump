@@ -14,7 +14,8 @@ pump 的特点是会让异步的脚本按照页面或脚本中位置的先后顺
 
 ###使用方法
 
-####加载脚本
+####加载
+pump 可异步并行或串行加载js,css,img
 
 `pump.load(src[, callback[, type]])`
 
