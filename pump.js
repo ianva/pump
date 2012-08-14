@@ -38,7 +38,7 @@
       var cs = isFunction(charset) ? charset(url) : charset
       cs && (node.charset = cs)
     }
-
+    
     assetOnload(node, callback || noop)
     if(isImg){
         node.src = url;
