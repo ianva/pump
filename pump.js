@@ -34,7 +34,7 @@
     var node = isImg?(new Image())
                     :document.createElement(isCSS ? 'link' : 'script')
 
-    if (charset) {
+    if (!isImg && charset) {
       var cs = isFunction(charset) ? charset(url) : charset
       cs && (node.charset = cs)
     }
