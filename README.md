@@ -19,7 +19,7 @@ pump 可异步并行或串行加载js,css,img
 
 `pump.load(src[, callback[, type]])`
 
-src : 需要加载的js，css  
+src : 需要加载的js，css，img 
 
 callback[可选]: 回调  
 
