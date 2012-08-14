@@ -7,9 +7,9 @@
       doc.getElementsByTagName('head')[0] ||
       doc.documentElement
 
-  var isIE = !+'\v1';
+  var IS_IE = !+'\v1'
   var baseElement = head.getElementsByTagName('base')[0]
-
+  var IS_IMG_RE = /\.jpg|jpeg|png|gif|bmp(?:\?|$)/i
   var IS_CSS_RE = /\.css(?:\?|$)/i
   var READY_STATE_RE = /loaded|complete|undefined/
 
@@ -29,8 +29,10 @@
   }
 
   var fetch = function(url, callback, charset) {
-    var isCSS = IS_CSS_RE.test(url)
-    var node = document.createElement(isCSS ? 'link' : 'script')
+    var isCSS = IS_CSS_RE.test(url);
+    var isImg = IS_IMG_RE.test(url);
+    var node = isImg?(new Image())
+                    :document.createElement(isCSS ? 'link' : 'script')
 
     if (charset) {
       var cs = isFunction(charset) ? charset(url) : charset
@@ -38,7 +40,10 @@
     }
 
     assetOnload(node, callback || noop)
-
+    if(isImg){
+        node.src = url;
+        return
+    }
     if (isCSS) {
       node.rel = 'stylesheet'
       node.href = url
@@ -62,20 +67,32 @@
   }
 
   function assetOnload(node, callback) {
+    if(node.nodeName === 'IMG'){
+        imgOload(node,callback);
+        return
+    }
     if (node.nodeName === 'SCRIPT') {
       scriptOnload(node, callback)
     } else {
       styleOnload(node, callback)
     }
   }
-  function removeScript(script){
-      if(isIE){
-          script.removeNode();
+  function removeNode(node){
+      if(IS_IE){
+          node.removeNode();
       }else{
-        if(script && script.parentNode){
-            head.removeChild(script);
+        if(node && node.parentNode){
+            node.parentNode.removeChild(node);
         }
       } 
+  }
+  function imgOload(node,callback){
+      node.onload = node.onerror = function(){
+        node.onload = node.onerror = null;
+        removeNode(node);
+        node = undefined;
+        callback();
+      }
   }
   function scriptOnload(node, callback) {
     node.onload = node.onerror = node.onreadystatechange = function() {
@@ -85,7 +102,7 @@
         node.onload = node.onerror = node.onreadystatechange = null
 
         // Remove the script to reduce memory leak
-        removeScript(node);
+        removeNode(node);
 
         // Dereference the node
         node = undefined
