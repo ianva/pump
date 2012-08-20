@@ -196,8 +196,8 @@
               }
             }
         } else {
-            // å‚è€ƒ https://github.com/samyk/jiagra/blob/master/jiagra.js
-            // chrome and firefox4ä»¥å‰çš„ç‰ˆæœ¬
+            // ²Î¿¼ https://github.com/samyk/jiagra/blob/master/jiagra.js
+            // chrome and firefox4ÒÔÇ°µÄ°æ±¾
             var stack;
             try {
                 makeReferenceError
@@ -330,12 +330,12 @@ var pump = function(name, callback){
             fn();
             return 
         }
-        // åœ¨å¤–è”scirptä¸­çš„æ¨¡å—ç›´æ¥æ‰§è¡Œ
+        // ÔÚÍâÁªscirptÖĞµÄÄ£¿éÖ±½ÓÖ´ĞĞ
         if( currentScriptSrc() ){
             fn();
             return
         }
-        // å†…è”scriptä¸­çš„æ¨¡å—æ”¾åœ¨å‰ä¸€ä¸ªå¤–è”scriptçš„æ‰§è¡Œé˜Ÿåˆ—ä¸­
+        // ÄÚÁªscriptÖĞµÄÄ£¿é·ÅÔÚÇ°Ò»¸öÍâÁªscriptµÄÖ´ĞĞ¶ÓÁĞÖĞ
         if(last){ 
 
             last.loaded? fn() : last.callChain.push( fn )
@@ -346,7 +346,7 @@ var pump = function(name, callback){
 
     if( !isFunction(name) && !isString(name)) return
 
-    // ç¬¬ä¸€ä¸ªå‚æ•°ä¸ºfunction 
+    // µÚÒ»¸ö²ÎÊıÎªfunction 
     if(isFunction(name)){
         callback = name;
         moduleInit(callback)
@@ -354,11 +354,11 @@ var pump = function(name, callback){
     }
     callback || (callback = noop); 
     
-    //åªæœ‰ä¸€ä¸ªå‚æ•°ä¸ºæ¨¡å—å
+    //Ö»ÓĞÒ»¸ö²ÎÊıÎªÄ£¿éÃû
     if( args.length === 1 ){
        return modules[ name ] && modules[ name ].exports
     }
-    //å­˜åœ¨ä¸¤ä¸ªå‚æ•°,ç¬¬ä¸€ä¸ªå‚æ•°ä¸ºæ¨¡å—å
+    //´æÔÚÁ½¸ö²ÎÊı,µÚÒ»¸ö²ÎÊıÎªÄ£¿éÃû
     modules[ name ] = {
         init :function(){
             var exports = modules[name].exports;
@@ -391,9 +391,9 @@ pump.executeOrder = function(src, callback){
         ;
         current.loaded = true;
         if( index == 0 || (prev && prev.called) ){
-            // æ‰§è¡Œå½“å‰è°ƒç”¨é˜Ÿåˆ—
+            // Ö´ĞĞµ±Ç°µ÷ÓÃ¶ÓÁĞ
             callChain( current );
-            //æ‰§è¡Œä¹‹åå·²loadedçš„è„šæœ¬çš„è°ƒç”¨é˜Ÿåˆ—
+            //Ö´ĞĞÖ®ºóÒÑloadedµÄ½Å±¾µÄµ÷ÓÃ¶ÓÁĞ
             for(var i = index;loadList[i++];){
                 if(loadList[i] && loadList[i].loaded){
                     callChain( loadList[i] )
