@@ -2,7 +2,7 @@
 
 pump是一个轻量的异步加载资源与模块的库
 
-pump 的特点是会让异步的脚本按照页面或脚本中位置的先后顺序执行，不需要依靠文件依赖来维护执行顺序，行为类似于script标签在页面中的表现；此外pump还可以加载样式和图片。
+pump 的特点是会让异步并行的脚本按照页面或脚本中位置的先后顺序执行，不需要依靠文件依赖来维护执行顺序，行为类似于script标签在页面中的表现；此外pump还可以加载样式和图片。
 
 ##如何使用?
 
@@ -15,7 +15,7 @@ pump 的特点是会让异步的脚本按照页面或脚本中位置的先后顺
 ###使用方法
 
 ####加载
-pump 可异步并行或串行加载js,css,img
+pump 可异步并行加载js，并能加载css,img
 
 `pump.load(src[, callback[, type]])`
 
@@ -23,10 +23,9 @@ src : 需要加载的js，css，img
 
 callback[可选]: 回调  
 
-type[可选]: 加载类型，默认为pump.config.type 中定义的类型。  
-1. `async` : 完全异步，不依赖于任何脚本的执行，声明即加载，加载后立刻执行。  
-2. `serial` : 串行加载，按照html或script中出现的顺序加载，加载并执行完一个后才去加载下一个。  
-3. `parallel` : 并行加载，并行下载文档中所有的文件，但会按照html或script中位置的顺序执行(如需并行加载需要套用pump模块封装)。
+type[可选]: 加载类型，默认为pump.config.type 中定义的类型，默认设置为并行加载 `order`。  
+1. `now` : 下载完后立刻执行，不依赖于任何脚本的执行，声明即加载，加载后立刻执行，无关执行顺序。    
+2. `order` : 会按照html或script中位置的顺序执行。  
 
 
 Example:
@@ -37,10 +36,10 @@ Example:
 	//并行加载回调执行
 	pump.load('http://pump.test/js/pumpt-m1.js',function(){
 		console.log('success!!');
-	},'parallel');
+	});
 	
-	//串行加载
-	pump.load('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js','serial')
+	//异步无顺序加载
+	pump.load('http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js','now')
 
 ####模块系统
 `pump(name, fn)`: 定义模块  
@@ -95,8 +94,7 @@ Example:
 `pump.config`
 
 `charset` : 文件编码  
-`type`: load的默认类型 async，serial，parallel
-
+`type`: load的默认类型 `now`，`order`  
 
 
 

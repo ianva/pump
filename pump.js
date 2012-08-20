@@ -12,6 +12,7 @@
   var IS_IMG_RE = /\.jpg|jpeg|png|gif|bmp(?:\?|$)/i
   var IS_CSS_RE = /\.css(?:\?|$)/i
   var READY_STATE_RE = /loaded|complete|undefined/
+  var IS_ASYNC = doc.createElement("script").async === true || "MozAppearance" in doc.documentElement.style || window.opera;
 
   var currentlyAddingScript
   var interactiveScript
@@ -28,7 +29,7 @@
     return toString.call(val) === '[object Array]'
   }
 
-  var fetch = function(url, callback, charset) {
+  var fetch = function(url, callback, charset , order, type) {
     var isCSS = IS_CSS_RE.test(url);
     var isImg = IS_IMG_RE.test(url);
     var node = isImg?(new Image())
@@ -45,12 +46,13 @@
         return
     }
     if (isCSS) {
-      node.rel = 'stylesheet'
-      node.href = url
+      node.rel = 'stylesheet';
+      node.href = url;
     }
     else {
-      node.async = 'async'
-      node.src = url
+      node.async = order ? 'async' : false;
+      node.type = 'text/' + (type || 'javascript');
+      node.src = url;
     }
 
     // For some cache cases in IE 6-9, the script executes IMMEDIATELY after
@@ -311,7 +313,7 @@ var loadList = []
 ,   modules = {}
 ,   config = {
         charset : 'gbk',
-        type : 'serial'
+        type : 'order'
     }
 ;
 var pump = function(name, callback){
@@ -335,6 +337,7 @@ var pump = function(name, callback){
         }
         // 内联script中的模块放在前一个外联script的执行队列中
         if(last){ 
+
             last.loaded? fn() : last.callChain.push( fn )
             return
         }
@@ -377,37 +380,7 @@ var callChain = function(item){
     }
     item.called = true;
 }
-
-pump.serialLoad = function(src, callback){
-    var index 
-    ,   prev 
-    ,   charset = config.charset
-    ;    
-    var srcCallback = function(){
-        var current = loadList[ index ]
-        ,   length = loadList.length
-        ;
-        current.loade = true;
-        callChain( current );
-        if( current = loadList[ index + 1 ] ){
-            index++
-            fetch(current.url, arguments.callee, charset );
-        }
-    }
-    loadList.push({
-        url : src,
-        callChain : [callback],
-        loaded : false,
-        called : false,
-        type: 'serial'
-    });        
-    index = loadList.length - 1;
-    prev = loadList[ index - 1 ];
-    if(index == 0 || prev && prev.called){
-        fetch( src, srcCallback, charset ); 
-    }
-}
-pump.parallelLoad = function(src, callback){
+pump.executeOrder = function(src, callback){
     var index 
     ,   charset = config.charset
     ;
@@ -430,20 +403,29 @@ pump.parallelLoad = function(src, callback){
             }    
         }
     }
+    var preLoad = function(){
+        fetch(src, function(){
+           current.loaded = true;
+           fetch( src, srcCallback, null,charset );
+        }, config.charset, 'cache');
+    }
     loadList.push({
         url : src,
         callChain:[callback], 
         loaded: false, 
-        called: false,
-        type: 'parallel'
+        called: false
     });
     index = loadList.length - 1; 
-    fetch( src, srcCallback, charset );
+    IS_ASYNC ? fetch( src, function(){
+                    callChain(loadList[ index ]);
+               }, config.charset)
+             : preload();
 }
-pump.asyncLoad = function(src, callback, charset){
-    fetch( src, callback, config.charset);
+pump.executeNow = function(src, callback, charset){
+    fetch( src, callback, config.charset, true);
 }
 pump.load = function( src, callback, type ){
+    var methodName; 
     if(isString(callback)){
         type = callback;
         callback = noop;
@@ -451,8 +433,9 @@ pump.load = function( src, callback, type ){
     if(arguments.length == 1){
         callback = noop;
     }
-    type = type || config.type;
-    return pump[type + 'Load'].call( win, src, callback, config.charset );
+    type = type || config.type 
+    methodName = 'execute' + type.charAt(0).toUpperCase() + type.substring(1);
+    return pump[methodName] && pump[methodName].call( win, src, callback, config.charset );
 }
 pump.ready = function( name, callback ){
     if(isFunction(name) && arguments.length == 1) callback = name;

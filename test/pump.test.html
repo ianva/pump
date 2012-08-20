@@ -19,7 +19,6 @@
     <div id="mocha"></div>
 
     <!--<script type="text/javascript">
-        pump.config.type = 'parallel';
         pump.load('http://localhost:3000/js/pumpt1.js',function(){
           console.log('1-!!!')     
         });
@@ -34,13 +33,12 @@
         })
         pump.load('https://ssl.google-analytics.com/ga.js',function(){
             console.log('async')
-        },'async')
+        },'now')
         pump.load('http://img3.douban.com/js/packed_jquery.min4.js',function(){
            console.log('3-!!!!')     
            console.log(pump('pump-t1'))
         });
-    </script>
--->
+    </script>-->
     <script>
     mocha.run().globals( 'kkeys, konami, getInterface, console, $, jQuery, _tb_tracer, html5, Modernizr, aliclick, etcclick, eeclick, aliclickType, baseClick, FE'.split(', ') )
     </script>
