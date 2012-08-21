@@ -400,6 +400,7 @@ pump.executeOrder = function(src, callback){
     }
     var preLoad = function(){
         fetch(src, function(){
+           var current = loadList[ index ]
            current.loaded = true;
            fetch( src, srcCallback, null,charset );
         }, config.charset, 'cache');
@@ -414,7 +415,7 @@ pump.executeOrder = function(src, callback){
     IS_ASYNC ? fetch( src, function(){
                     callChain(loadList[ index ]);
                }, config.charset)
-             : preload();
+             : preLoad();
 }
 pump.executeNow = function(src, callback, charset){
     fetch( src, callback, config.charset, true);
