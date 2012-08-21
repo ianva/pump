@@ -83,19 +83,15 @@
     }
   }
   function removeNode(node){
-      if(IS_IE){
-          node.removeNode();
-      }else{
-        if(node && node.parentNode){
-            node.parentNode.removeChild(node);
-        }
-      } 
+      IS_IE ? node.removeNode()
+            : node && node.parentNode && node.parentNode.removeChild(node);
+      // Dereference the node
+      node = undefined;
   }
   function imgOload(node,callback){
       node.onload = node.onerror = function(){
         node.onload = node.onerror = null;
         removeNode(node);
-        node = undefined;
         callback();
       }
   }
@@ -108,10 +104,6 @@
 
         // Remove the script to reduce memory leak
         removeNode(node);
-
-        // Dereference the node
-        node = undefined
-
         callback()
       }
     }
