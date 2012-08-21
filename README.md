@@ -23,9 +23,11 @@ src : 需要加载的js，css，img
 
 callback[可选]: 回调  
 
-type[可选]: 执行类型，默认为pump.config.type 中定义的类型，默认设置为并行加载 `order`。  
+type[可选]: 脚本的执行类型，默认为pump.config.type 中定义的类型，默认设置为并行加载 `order`。  
 1. `now` : 下载完后立刻执行，不依赖于任何脚本的执行，声明即加载，加载后立刻执行，无关执行顺序。    
 2. `order` : 会按照html或script中位置的顺序执行。  
+注：css和img总是为 `now` 既加载立即执行，无关配置和参数设置。  
+
 
 
 Example:
@@ -94,7 +96,7 @@ Example:
 `pump.config`
 
 `charset` : 文件编码  
-`type`: 默认执行类型 `now`，`order`  
+`type`: 默认脚本的执行类型 `now`，`order`  
 
 
 

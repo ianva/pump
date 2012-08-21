@@ -3,7 +3,6 @@
  */
 ;(function(win) {
 
-  if(win.pump)return
 
   var doc = document
   var head = doc.head ||
@@ -14,6 +13,7 @@
   var baseElement = head.getElementsByTagName('base')[0]
   var IS_IMG_RE = /\.jpg|jpeg|png|gif|bmp(?:\?|$)/i
   var IS_CSS_RE = /\.css(?:\?|$)/i
+  var IS_JS_RE = /\.css(?:\?|$)/i
   var READY_STATE_RE = /loaded|complete|undefined/
   var IS_ASYNC = doc.createElement("script").async === true || "MozAppearance" in doc.documentElement.style || window.opera;
 
@@ -325,12 +325,10 @@ var pump = function(name, callback){
             fn();
             return 
         }
-        // 在外联scirpt中的模块直接执行
         if( currentScriptSrc() ){
             fn();
             return
         }
-        // 内联script中的模块放在前一个外联script的执行队列中
         if(last){ 
 
             last.loaded? fn() : last.callChain.push( fn )
@@ -386,9 +384,7 @@ pump.executeOrder = function(src, callback){
         ;
         current.loaded = true;
         if( index == 0 || (prev && prev.called) ){
-            // 执行当前调用队列
             callChain( current );
-            //执行之后已loaded的脚本的调用队列
             for(var i = index;loadList[i++];){
                 if(loadList[i] && loadList[i].loaded){
                     callChain( loadList[i] )
@@ -401,9 +397,8 @@ pump.executeOrder = function(src, callback){
     var preLoad = function(){
         fetch(src, function(){
            var current = loadList[ index ]
-           current.loaded = true;
-           fetch( src, srcCallback, null,charset );
-        }, config.charset, 'cache');
+           fetch( src, srcCallback, charset );
+        }, config.charset, null, 'cache');
     }
     loadList.push({
         url : src,
@@ -429,7 +424,8 @@ pump.load = function( src, callback, type ){
     if(arguments.length == 1){
         callback = noop;
     }
-    type = type || config.type 
+    type = !IS_JS_RE.test(src) ? 'now' 
+                               : (type || config.type) 
     methodName = 'execute' + type.charAt(0).toUpperCase() + type.substring(1);
     return pump[methodName] && pump[methodName].call( win, src, callback, config.charset );
 }

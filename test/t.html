@@ -3,11 +3,37 @@
   <head>
     <title>Mocha</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    <link rel="stylesheet" href="mocha/mocha.css" />
-    <script src="http://localhost:3000/js/pumpt1.js" type="text/orz"> </script>
+    <script type="text/javascript" src="../pump.js"></script>
       </head>
   <body>
+    <div id="console"></div>
+    <script type="text/javascript">
+        if(!console ){
+        var console = {};
+        console.log = function(){
+                var args = Array.prototype.slice.call(arguments);
+                var wp = document.getElementById('console');
+                wp.innerHTML = wp.innerHTML + args.join(',')+'<br/>'
+
+            };
+        }
+        pump.load('http://192.168.0.119:3000/js/pumpt1.js',function(){
+          console.log('1-!!!')     
+        });
+        pump('m2',function(){
+            console.log('m2',this)
+        });
+        pump.ready('m3',function(){
+           console.log('domready m3')
+        })
+        pump.load('https://ssl.google-analytics.com/ga.js',function(){
+            console.log('async')
+        },'now')
+        pump.load('http://img3.douban.com/js/packed_jquery.min4.js',function(){
+           console.log('3-!!!!')     
+           console.log(pump('pump-t1'))
+        });
+    </script>
   </body>
 </html>
  
