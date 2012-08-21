@@ -67,7 +67,7 @@ Example:
     	console.log(pump('module-1').a)
     });
 
-注：如果pump声明在两个pump.load中间，仍然会按照html或script中位置的顺序执行，async除外。
+注：如果pump声明在两个pump.load中间，仍然会按照html或script中位置的顺序执行，`now` 除外。
 
 ####Domready后执行
 
