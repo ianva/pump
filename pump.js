@@ -2,6 +2,9 @@
  * Utilities for fetching js and css files.
  */
 ;(function(win) {
+
+  if(win.pump)return
+
   var doc = document
   var head = doc.head ||
       doc.getElementsByTagName('head')[0] ||
@@ -459,4 +462,4 @@ pump.config = config;
 
 win.pump = pump;
 
-})(window)
+})(window);
