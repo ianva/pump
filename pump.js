@@ -13,7 +13,7 @@
   var baseElement = head.getElementsByTagName('base')[0]
   var IS_IMG_RE = /\.jpg|jpeg|png|gif|bmp(?:\?|$)/i
   var IS_CSS_RE = /\.css(?:\?|$)/i
-  var IS_JS_RE = /\.css(?:\?|$)/i
+  var IS_JS_RE = /\.js(?:\?|$)/i
   var READY_STATE_RE = /loaded|complete|undefined/
   var IS_ASYNC = doc.createElement("script").async === true || "MozAppearance" in doc.documentElement.style || window.opera;
 
@@ -38,7 +38,7 @@
     var node = isImg?(new Image())
                     :document.createElement(isCSS ? 'link' : 'script')
 
-    if (!isImg && charset) {
+    if (IS_JS_RE.test(url) && charset) {
       var cs = isFunction(charset) ? charset(url) : charset
       cs && (node.charset = cs)
     }
