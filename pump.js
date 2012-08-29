@@ -380,29 +380,33 @@ pump.executeOrder = function(src, callback){
     var srcCallback = function (){
         var current = loadList[ index ]
         ,   length = loadList.length
-        ,   prev = loadList[ index -1 ]
+        ,   prev = loadList[ index - 1 ]
+        ,   next = loadList[ index + 1 ]
         ;
         current.loaded = true;
-        if( index == 0 || (prev && prev.called) ){
-            callChain( current );
-            for(var i = index;loadList[i++];){
-                if(loadList[i] && loadList[i].loaded){
-                    callChain( loadList[i] )
-                }else{
-                    break;
-                }
-            }    
-        }
+        callChain( current );
+        if(next && next.preloaded){
+            index++
+            fetch( next.url, srcCallback, charset );
+            return
+        }    
     }
     var preLoad = function(){
         fetch(src, function(){
-           var current = loadList[ index ]
-           fetch( src, srcCallback, charset );
+            var current = loadList[ index ]
+            ,   length = loadList.length
+            ,   prev = loadList[ index -1 ]
+            ;
+            current.preloaded = true;
+            if(index == 0 || (prev && prev.called)){
+                fetch( src, srcCallback, charset );
+            }
         }, config.charset, null, 'cache');
     }
     loadList.push({
         url : src,
         callChain:[callback], 
+        perloaded : false,
         loaded: false, 
         called: false
     });

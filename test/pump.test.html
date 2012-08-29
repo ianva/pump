@@ -11,15 +11,15 @@
     mocha.setup('tdd');
     </script>
     <script type="text/javascript" src="../pump.js"></script>
-    <script src="pump.test.js" type="text/javascript"></script>
+    <!--<script src="pump.test.js" type="text/javascript"></script>-->
     <script>
     </script>
       </head>
   <body>
     <div id="mocha"></div>
 
-    <!--<script type="text/javascript">
-        pump.load('http://localhost:3000/js/pumpt1.js',function(){
+    <script type="text/javascript">
+        pump.load('http://10.16.212.108:3000/js/pumpt1.js',function(){
           console.log('1-!!!')     
         });
         pump.load('http://static.c.aliimg.com/js/app/operation/homepage/page/home20120606/top-merge.js?t=0726',function(){
@@ -38,7 +38,7 @@
            console.log('3-!!!!')     
            console.log(pump('pump-t1'))
         });
-    </script>-->
+    </script>
     <script>
     mocha.run().globals( 'kkeys, konami, getInterface, console, $, jQuery, _tb_tracer, html5, Modernizr, aliclick, etcclick, eeclick, aliclickType, baseClick, FE'.split(', ') )
     </script>
