@@ -90,7 +90,7 @@ Example:
 
 ####配置
 
-`pump.config`
+`pump.config`  
 `charset` : 文件编码  
 
 

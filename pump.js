@@ -372,7 +372,7 @@ var callChain = function(item){
     }
     item.called = true;
 }
-pump.sequenceExecute= function(src, callback){
+pump.sequentialExecute= function(src, callback){
     var index 
     ,   charset = config.charset
     ;
@@ -423,7 +423,7 @@ pump.load = function( src, callback, type ){
         callback = noop;
     }
     type = !IS_JS_RE.test(src) ? 'now' 
-                               : 'sequence'; 
+                               : type || 'sequential'; 
     methodName = type + 'Execute'
     return pump[methodName] && pump[methodName].call( win, src, callback, config.charset );
 }
