@@ -297,9 +297,9 @@
   }
 //--------------------
 
-/* pump version 1.0
+/* pump version 2.0
  * creator : ianva
- * update : 2012.8.9
+ * update : 2012.8.29
  */
 
 // {url:'', callChain:[], loaded: true, called : false, type: 'serial'}
@@ -307,8 +307,7 @@ var loadList = []
 ,   readyList = []
 ,   modules = {}
 ,   config = {
-        charset : 'gbk',
-        type : 'order'
+        charset : 'gbk'
     }
 ;
 var pump = function(name, callback){
@@ -373,7 +372,7 @@ var callChain = function(item){
     }
     item.called = true;
 }
-pump.executeOrder = function(src, callback){
+pump.sequenceExecute= function(src, callback){
     var index 
     ,   charset = config.charset
     ;
@@ -411,7 +410,7 @@ pump.executeOrder = function(src, callback){
                }, config.charset)
              : preLoad();
 }
-pump.executeNow = function(src, callback, charset){
+pump.nowExecute = function(src, callback, charset){
     fetch( src, callback, config.charset, true);
 }
 pump.load = function( src, callback, type ){
@@ -424,8 +423,8 @@ pump.load = function( src, callback, type ){
         callback = noop;
     }
     type = !IS_JS_RE.test(src) ? 'now' 
-                               : (type || config.type) 
-    methodName = 'execute' + type.charAt(0).toUpperCase() + type.substring(1);
+                               : 'sequence'; 
+    methodName = type + 'Execute'
     return pump[methodName] && pump[methodName].call( win, src, callback, config.charset );
 }
 pump.ready = function( name, callback ){
