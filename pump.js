@@ -379,22 +379,17 @@ pump.executeOrder = function(src, callback){
     ;
     var srcCallback = function (){
         var current = loadList[ index ]
-        ,   length = loadList.length
-        ,   prev = loadList[ index - 1 ]
-        ,   next = loadList[ index + 1 ]
+        ,   next = loadList[ ++index ]
         ;
         current.loaded = true;
         callChain( current );
         if(next && next.preloaded){
-            index++
             fetch( next.url, srcCallback, charset );
-            return
         }    
     }
     var preLoad = function(){
         fetch(src, function(){
             var current = loadList[ index ]
-            ,   length = loadList.length
             ,   prev = loadList[ index -1 ]
             ;
             current.preloaded = true;
