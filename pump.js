@@ -191,8 +191,8 @@
               }
             }
         } else {
-            // ²Î¿¼ https://github.com/samyk/jiagra/blob/master/jiagra.js
-            // chrome and firefox4ÒÔÇ°µÄ°æ±¾
+            // å‚è€ƒ https://github.com/samyk/jiagra/blob/master/jiagra.js
+            // chrome and firefox4ä»¥å‰çš„ç‰ˆæœ¬
             var stack;
             try {
                 makeReferenceError
@@ -307,7 +307,7 @@ var loadList = []
 ,   readyList = []
 ,   modules = {}
 ,   config = {
-        charset : 'gbk'
+        charset : 'utf-8'
     }
 ;
 var pump = function(name, callback){
@@ -338,7 +338,7 @@ var pump = function(name, callback){
 
     if( !isFunction(name) && !isString(name)) return
 
-    // µÚÒ»¸ö²ÎÊıÎªfunction 
+    // ç¬¬ä¸€ä¸ªå‚æ•°ä¸ºfunction 
     if(isFunction(name)){
         callback = name;
         moduleInit(callback)
@@ -346,11 +346,11 @@ var pump = function(name, callback){
     }
     callback || (callback = noop); 
     
-    //Ö»ÓĞÒ»¸ö²ÎÊıÎªÄ£¿éÃû
+    //åªæœ‰ä¸€ä¸ªå‚æ•°ä¸ºæ¨¡å—å
     if( args.length === 1 ){
        return modules[ name ] && modules[ name ].exports
     }
-    //´æÔÚÁ½¸ö²ÎÊı,µÚÒ»¸ö²ÎÊıÎªÄ£¿éÃû
+    //å­˜åœ¨ä¸¤ä¸ªå‚æ•°,ç¬¬ä¸€ä¸ªå‚æ•°ä¸ºæ¨¡å—å
     modules[ name ] = {
         init :function(){
             var exports = modules[name].exports;
